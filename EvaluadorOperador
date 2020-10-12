@@ -1,0 +1,326 @@
+/*
+    ESTE PROGRAMA SIRVE PARA CALCULAR EL VALOR DE UNA EXPRESION ARITMETICA CON EL USO DE PILAS Y SUS METODOS
+*/
+import java.util.ArrayList;
+import java.util.List;
+
+public class EvaluadorOperador {
+
+ /*
+    EN EL MAIN PONEMOS NUESTRA EXPRESION A EVALUAR Y CONVERTIR EN POSTFIJA 
+ */
+
+ public static void main(String[] args) {
+
+  //String dat = "8*(8/20)";
+  String dat = "(6+2)*3/(2^2)-4";
+
+  System.out.println(convertToPosfija(dat).toString());
+
+  //456+823^/-7-*1-
+
+  //4*(5+6-(8/2^3)-7)-1
+
+  double resultado = evaluar(dat);
+
+  System.out.println(resultado);
+
+  
+
+ }
+
+ 
+
+ /*
+
+  * Tabla de prioridades:
+
+  * En la expresión:
+
+  *    ^ =>  4
+
+  *    * => 2
+
+  *    / => 2
+
+  *    + =>  1
+
+  *    - => 1
+
+  *    ( => 5  
+
+  *    ) => NA
+
+  * En la pila:
+
+  *   ^ =>  3
+
+  *    * => 2
+
+  *    / => 2
+
+  *    + =>  1
+
+  *    - => 1
+
+  *    ( => 0
+
+  *    ) =>  NA
+
+  * */
+
+ 
+//ESTE METODO NOS AYUDA A PASAR LA EXPRESION A POSTFIJA PARA POSTERIOR MENTE SER EVALUADA 
+ public static double evaluar(String infija) {
+
+  //pasamos la expresión de infija a posfija
+
+  //si es un operador apilamos
+
+  //si ya tiene un operador, evaluamos el valor del operador en la expresión 
+
+  //con el valor del operador en la pila
+
+  //si el valor del operador en la expresión no es mayor
+
+  //que el valor del operador de la cima en la pila
+
+  //entonces sacamos esa cima y le asignamos a la posfija
+
+  //y apilamos ese operador en la pila
+
+  //String posfija = convertToPosfija(infija);
+
+  List<String> posfija = convertToPosfija(infija);
+
+  return evaluarPosfija(posfija);
+
+ }
+
+
+//CONVERTIMOS LA EXPRESION A POSTFIJA CON EL USO DE LA CLASE PILA
+ private static List<String> convertToPosfija(String infija) {
+
+  Pila pilita = new Pila(100);//nuestra pila
+
+  ArrayList<String> posfija = new ArrayList<>();
+
+  char caracter;
+
+  String aux = "";
+
+  for (int i = 0; i < infija.length(); i++) {
+
+   caracter = infija.charAt(i);
+
+   if(isOperator(""+caracter)) {
+
+    if(!aux.equals("")) {
+
+     posfija.add(aux);
+
+     aux = "";
+
+    }
+
+    if(pilita.estaVacia()) {//si la pila está vacía la apilamos normal
+
+     pilita.apilar(String.valueOf(caracter));
+
+    }else {
+
+     String cimaPila = (String) pilita.elementoTope();
+
+     if(caracter==')') {
+
+      //desapilamos hasta encontrar un paréntesis que abre
+
+      while(!(cimaPila=(String) pilita.desapilar()).equals("(")) {
+
+       posfija.add(cimaPila);
+
+      }
+
+     }else {
+
+      if(valorEnExpresion(""+caracter)>valorEnPila(cimaPila)) {
+
+       pilita.apilar(""+caracter);
+
+      }else {
+
+       posfija.add((String) pilita.desapilar());
+
+       pilita.apilar(""+caracter);
+
+      }
+
+     }
+
+    }
+
+   }else {
+
+    aux+= caracter;
+
+   }
+
+  }
+
+  if(!aux.equals("")) {
+
+   posfija.add(aux);
+
+  }
+
+  //mientras tengamos operadores en la pila, tenemos que 
+
+  //sacarlo y pasarlo a la posfija
+
+  while(!pilita.estaVacia()) {
+
+   posfija.add((String) pilita.desapilar());
+
+  }
+
+  return posfija;
+
+ }
+
+ 
+//LLEVAMOS A CABO LA EVALUACION DE LA EXPRESION
+ private static double evaluarPosfija(List<String> posfija) {
+
+  Pila pilita = new Pila(100);
+
+  String caracter;
+
+  for (int i = 0; i < posfija.size(); i++) {
+
+   caracter = posfija.get(i);
+
+   if(!isOperator(caracter)) {
+
+    pilita.apilar(caracter);
+
+   }else {
+
+    double n2 = Double.parseDouble((String) pilita.desapilar());
+
+    double n1 = Double.parseDouble((String) pilita.desapilar());
+
+    double rspt = 0;
+
+    if(caracter.equals("+")) {
+
+     rspt = n1+n2;
+
+    }else if(caracter.equals("-")) {
+
+     rspt = n1-n2;
+
+    }else if(caracter.equals("*")) {
+
+     rspt = n1*n2;
+
+    }else if(caracter.equals("/")) {
+
+     rspt = n1/n2;
+
+    }else if(caracter.equals("^")){
+
+     rspt = Math.pow(n1,n2);
+     
+    }
+
+    pilita.apilar(""+rspt);
+
+   }
+
+  }
+
+  return Double.parseDouble((String) pilita.desapilar());
+
+ }
+
+ 
+//LE DAMOS EL VALOR QUE TIENEN EN L PILA 
+ private static int valorEnPila(String cimaPila) {
+
+  switch (cimaPila) {
+
+   case "^":
+
+    return 3;
+
+   case "*":
+
+    return 2;
+
+   case "/":
+
+    return 2;
+
+   case "+":
+
+    return 1;
+
+   case "-":
+
+    return 1;
+
+   case "(":
+
+    return 0;
+
+  }
+
+  return 0;
+
+ }
+
+
+//LE DAMOS LA PRIORIDAD QUE TIENEN EN LA EXPRESION 
+ private static int valorEnExpresion(String operador) {
+
+  switch (operador) {
+
+   case "^":
+
+    return 4;
+
+   case "*":
+
+    return 2;
+
+   case "/":
+
+    return 2;
+
+   case "+":
+
+    return 1;
+
+   case "-":
+
+    return 1;
+
+   case "(":
+
+    return 5;
+
+  }
+
+  return 0;
+
+ }
+
+
+//METODO QUE NOS AYUDA A SABER SI NUESTRO DATO A INGRESAR ES UN OPERADOR
+ private static boolean isOperator(String caracter) {
+
+  return caracter.matches("^[+|*|/|\\-|^|(|)]$");
+
+ }
+    
+}
